@@ -15,14 +15,17 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
-  roleId        Int? @default(1)
+  roleId        Int       @default(1)
   accounts      Account[]
   sessions      Session[]
+
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
 }
 
 model Role {
-  id   Int     @id @default(autoincrement())
-  role String?
+  id    Int     @id @default(autoincrement())
+  role  String?
+  users User[]
 }
 
 model Account {
@@ -59,4 +62,21 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model Movie {
+  id          String @id @default(cuid())
+  title       String
+  description String
+  image       String
+  genreId     String
+  showtimes   Int
+
+  genre Genre @relation(fields: [genreId], references: [id], onDelete: Cascade)
+}
+
+model Genre {
+  id    String  @id @default(cuid())
+  name  String
+  movie Movie[]
 }
