@@ -3,6 +3,17 @@ import GoogleProvider from "next-auth/providers/google"
 import { PrismaClient } from "@prisma/client"
 import { NextAuthOptions } from "next-auth"
 
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string
+      name?: string | null
+      email?: string | null
+      image?: string | null
+    }
+  }
+}
+
 const prisma = new PrismaClient()
 
 export const authOptions: NextAuthOptions = {
@@ -31,6 +42,17 @@ export const authOptions: NextAuthOptions = {
           },
           data: { access_token: account.access_token },
         })
+      }
+    },
+    async signOut({ session }) {
+      if (session?.user?.id) {
+        console.log("Menghapus session untuk user:", session.user.id)
+        
+        await prisma.session.deleteMany({
+          where: { userId: session.user.id },
+        })
+        
+        console.log("Session berhasil dihapus")
       }
     },
   },

@@ -6,23 +6,26 @@ import { PrismaClient } from "@prisma/client"
 
 const prisma = new PrismaClient();
 
-// get all user
-export async function GET(request: NextRequest) {
+// get spesific user
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
+
+        const { id } = await params;
         const session = await getServerSession(authOptions)
 
         if (!session) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
-        const users = await prisma.user.findMany({
+        const user = await prisma.user.findUnique({
+            where: { id: id },
             select: {
                 id: true,
                 name: true,
                 email: true
             }
         })
-        return NextResponse.json(users)
+        return NextResponse.json(user)
     } catch (error) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
