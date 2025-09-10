@@ -42,3 +42,15 @@ next-env.d.ts
 
 /app/generated/prisma
 client_secret_537281949571-jnq732duqgtkspfu4o0683b0sr16fmeo.apps.googleusercontent.com.json
+
+# minio
+.minio-data
+.minio.sys/
+/src/generated/prisma
+Processing/.minio.sys/buckets/.bloomcycle.bin/xl.meta
+minio.exe
+Processing/images/1756968953565-Gz1x2TUagAAgAnH.jpg/xl.meta
+Processing
+Service
+.movie-reservation-api\minio-data
+minio-data/movie0images
