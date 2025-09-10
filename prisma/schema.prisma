@@ -10,20 +10,21 @@ datasource db {
 
 // Auth
 model User {
-  id            String    @id @default(cuid())
+  id            String        @id @default(cuid())
   name          String?
-  email         String?   @unique
+  email         String?       @unique
   emailVerified DateTime?
   image         String?
-  roleId        String       @default("cmfaribo40000d954y5uqt0xa")
+  roleId        String        @default("cmfaribo40000d954y5uqt0xa")
   accounts      Account[]
   sessions      Session[]
+  reservation   Reservation[]
 
   role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
 }
 
 model Role {
-  id    String     @id @default(cuid())
+  id    String  @id @default(cuid())
   role  String?
   users User[]
 }
@@ -69,14 +70,47 @@ model Movie {
   title       String
   description String
   image       String
-  genreId     String
-  showtimes   Int
+  maxShowtime Int
 
-  genre Genre @relation(fields: [genreId], references: [id], onDelete: Cascade)
+  genre         Genre[]
+  movieShowTime MovieShowTime[]
 }
 
 model Genre {
-  id    String  @id @default(cuid())
-  name  String
-  movie Movie[]
+  id      String @id @default(cuid())
+  name    String
+  movieId String
+
+  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+}
+
+model MovieShowTime {
+  id            String   @id @default(cuid())
+  name          String
+  movieShowTime DateTime
+  movieId       String
+  maxSeat       Int
+
+  movie     Movie       @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  movieSeat MovieSeat[]
+}
+
+model MovieSeat {
+  id              String @id @default(cuid())
+  movieShowTimeId String
+  status          Int
+
+  showTime    MovieShowTime @relation(fields: [movieShowTimeId], references: [id], onDelete: Cascade)
+  Reservation Reservation[]
+}
+
+model Reservation {
+  id          String   @id @default(cuid())
+  userId      String
+  movieSeatId String
+  status      Int
+  reservedAt  DateTime @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movieSeat MovieSeat @relation(fields: [movieSeatId], references: [id], onDelete: Cascade)
 }

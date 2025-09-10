@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 export const POST = async (request: NextRequest) => {
     try {
         const body = await request.json();
-        const { name } = body;
+        const { name, movieId } = body;
 
         const session = await getServerSession(authOptions)
 
@@ -19,6 +19,7 @@ export const POST = async (request: NextRequest) => {
         const genre = await prisma.genre.create({
             data: {
                 name: name,
+                movieId: movieId,
             }
         })
 
