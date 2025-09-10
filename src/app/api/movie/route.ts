@@ -55,3 +55,26 @@ export const POST = async (request: NextRequest) => {
 
 
 
+export const GET = async (request: NextRequest) => {
+    try {
+        const session = await getServerSession(authOptions)
+
+        if (!session) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const allMovies = await prisma.movie.findMany({
+            select: {
+                id: true,
+                title: true,
+                description: true,
+                image: true,
+                maxShowtime: true,
+            }
+        })
+
+        return NextResponse.json(allMovies)
+    } catch (error) {
+        return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+    }
+}
