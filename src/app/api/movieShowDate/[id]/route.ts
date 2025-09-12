@@ -24,6 +24,11 @@ export const GET = async (request: NextRequest, { params }: { params: Promise<{ 
                         id: true,
                         title: true,
                     }
+                },
+                movieShowHour: {
+                    select: {
+                        movieShowHour: true
+                    }
                 }
             }
         })

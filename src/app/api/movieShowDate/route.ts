@@ -67,6 +67,11 @@ export const GET = async () => {
                         id: true,
                         title: true,
                     }
+                },
+                movieShowHour: {
+                    select: {
+                        movieShowHour: true
+                    }
                 }
             }
         })
