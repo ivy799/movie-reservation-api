@@ -8,7 +8,6 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// Auth
 model User {
   id            String        @id @default(cuid())
   name          String?
@@ -65,52 +64,68 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+model Genre {
+  id         String       @id @default(cuid())
+  name       String
+  movieGenre MovieGenre[]
+}
+
+model MovieGenre {
+  id      String @id @default(cuid())
+  genreId String
+  movieId String
+
+  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  genre Genre @relation(fields: [genreId], references: [id])
+}
+
 model Movie {
   id          String @id @default(cuid())
   title       String
   description String
   image       String
   maxShowtime Int
+  price       Int?
 
-  genre         Genre[]
-  movieShowTime MovieShowTime[]
+  movieShowDate MovieShowDate[]
+  movieGenre    MovieGenre[]
 }
 
-model Genre {
-  id      String @id @default(cuid())
-  name    String
-  movieId String
-
-  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
-}
-
-model MovieShowTime {
+model MovieShowDate {
   id            String   @id @default(cuid())
-  name          String
-  movieShowTime DateTime
+  movieShowDate DateTime
   movieId       String
-  maxSeat       Int
 
-  movie     Movie       @relation(fields: [movieId], references: [id], onDelete: Cascade)
-  movieSeat MovieSeat[]
+  movie         Movie           @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  movieShowHour MovieShowHour[]
+}
+
+model MovieShowHour {
+  id              String   @id @default(cuid())
+  movieShowDateId String
+  movieShowHour   DateTime
+
+  movieShowDate MovieShowDate @relation(fields: [movieShowDateId], references: [id], onDelete: Cascade)
+  movieSeat     MovieSeat[]
 }
 
 model MovieSeat {
   id              String @id @default(cuid())
-  movieShowTimeId String
+  movieShowHourId String
   status          Int
 
-  showTime    MovieShowTime @relation(fields: [movieShowTimeId], references: [id], onDelete: Cascade)
-  Reservation Reservation[]
+  movieShowHour MovieShowHour @relation(fields: [movieShowHourId], references: [id], onDelete: Cascade)
+  Reservation   Reservation[]
 }
 
 model Reservation {
   id          String   @id @default(cuid())
   userId      String
   movieSeatId String
-  status      Int
   reservedAt  DateTime @default(now())
 
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   movieSeat MovieSeat @relation(fields: [movieSeatId], references: [id], onDelete: Cascade)
+
+  @@unique([movieSeatId])
 }

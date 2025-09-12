@@ -18,7 +18,6 @@ export const GET = async (request: NextRequest, { params }: { params: Promise<{ 
             where: { id: id },
             select: {
                 id: true,
-                status: true,
                 reservedAt: true,
                 user: {
                     select: {
@@ -31,15 +30,13 @@ export const GET = async (request: NextRequest, { params }: { params: Promise<{ 
                     select: {
                         id: true,
                         status: true,
-                        showTime: {
+                        movieShowHour: {
                             select: {
                                 id: true,
-                                name: true,
-                                movieShowTime: true,
-                                movie: {
+                                movieShowHour: true,
+                                movieShowDate: {
                                     select: {
-                                        id: true,
-                                        title: true,
+                                        movieShowDate: true
                                     }
                                 }
                             }
@@ -68,7 +65,6 @@ export const PUT = async (request: NextRequest, { params }: { params: Promise<{ 
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
-        // Check if reservation exists
         const existingReservation = await prisma.reservation.findUnique({
             where: { id: id }
         });
@@ -80,7 +76,6 @@ export const PUT = async (request: NextRequest, { params }: { params: Promise<{ 
         const body = await request.json();
         const { userId, movieSeatId, status } = body;
 
-        // Build update data dynamically
         const updateData: any = {};
 
         if (userId && userId.trim() !== "") {
@@ -95,7 +90,6 @@ export const PUT = async (request: NextRequest, { params }: { params: Promise<{ 
             updateData.status = parseInt(status);
         }
 
-        // Check if there's anything to update
         if (Object.keys(updateData).length === 0) {
             return NextResponse.json({ error: "No data provided for update" }, { status: 400 })
         }
@@ -121,8 +115,80 @@ export const DELETE = async (request: NextRequest, { params }: { params: Promise
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
+        const reservation = await prisma.reservation.findUnique({
+            where: {
+                id: id
+            },
+            select: {
+                movieSeatId: true,
+                movieSeat: {
+                    select: {
+                        movieShowHour: {
+                            select: {
+                                movieShowDate: {
+                                    select: {
+                                        movieShowDate: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        })
+
+        if (!reservation) {
+            return NextResponse.json({ error: "Reservation not found" }, { status: 404 })
+        }
+
+        // Ambil movieSeatId dari reservation yang ditemukan
+        const movieSeatId = reservation.movieSeatId;
+
+        const movieDate = await prisma.reservation.findUnique({
+            where: {
+                id: id
+            },
+            select: {
+                movieSeat: {
+                    select: {
+                        movieShowHour: {
+                            select: {
+                                movieShowDate: {
+                                    select: {
+                                        movieShowDate: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        })
+
+        if (!movieDate) {
+            return NextResponse.json({ error: "Reservation not found" }, { status: 404 })
+        }
+
+        const showDateTime = movieDate.movieSeat.movieShowHour.movieShowDate.movieShowDate;
+        const currentTime = new Date();
+
+        if (showDateTime < currentTime) {
+            return NextResponse.json({ error: "Movie sudah selesai, tidak bisa membatalkan" }, { status: 400 })
+        }
+
+        await prisma.movieSeat.update({
+            where: {
+                id: movieSeatId
+            },
+            data: {
+                status: 0
+            }
+        })
+
         await prisma.reservation.delete({
-            where: { id: id }
+            where: {
+                id: id
+            }
         })
 
         return NextResponse.json({ message: "Reservation deleted successfully" })

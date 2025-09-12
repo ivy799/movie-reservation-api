@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 export const POST = async (request: NextRequest) => {
     try {
         const body = await request.json();
-        const { movieShowHourId, status } = body;
+        const { name, movieShowTime, movieId, maxSeat } = body;
 
         const session = await getServerSession(authOptions)
 
@@ -16,16 +16,18 @@ export const POST = async (request: NextRequest) => {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
-        const movieSeat = await prisma.movieSeat.create({
+        const movieShowTimeRecord = await prisma.movieShowTime.create({
             data: {
-                movieShowHourId: movieShowHourId,
-                status: status,
+                name: name,
+                movieShowTime: new Date(movieShowTime),
+                movieId: movieId,
+                maxSeat: maxSeat,
             }
         })
 
-        return NextResponse.json(movieSeat)
+        return NextResponse.json(movieShowTimeRecord)
     } catch (error) {
-        return NextResponse.json({ error: "Internal server error while creating movie seat" }, { status: 500 })
+        return NextResponse.json({ error: "Internal server error while creating movie show time" }, { status: 500 })
     }
 }
 
@@ -37,30 +39,23 @@ export const GET = async () => {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
-        const movieSeats = await prisma.movieSeat.findMany({
+        const movieShowTimes = await prisma.movieShowTime.findMany({
             select: {
                 id: true,
-                status: true,
-                movieShowHour: {
+                name: true,
+                movieShowTime: true,
+                maxSeat: true,
+                movie: {
                     select: {
                         id: true,
-                        movieShowDate: {
-                            select: {
-                                movieShowDate: true,
-                                movie: {
-                                    select: {
-                                        title: true,
-                                    }
-                                }
-                            }
-                        }
+                        title: true,
                     }
                 }
             }
         })
 
-        return NextResponse.json(movieSeats)
+        return NextResponse.json(movieShowTimes)
     } catch (error) {
-        return NextResponse.json({ error: "Failed to fetch movie seats" }, { status: 500 })
+        return NextResponse.json({ error: "Failed to fetch movie show times" }, { status: 500 })
     }
 }

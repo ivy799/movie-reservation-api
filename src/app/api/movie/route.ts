@@ -70,6 +70,20 @@ export const GET = async (request: NextRequest) => {
                 description: true,
                 image: true,
                 maxShowtime: true,
+                price: true,
+                movieGenre: {
+                    select: {
+                        genre: {
+                            select: {
+                                id: true,
+                                name: true
+                            }
+                        }
+                    }
+                },
+            },
+            orderBy: {
+                title: 'asc'
             }
         })
 
