@@ -14,13 +14,11 @@ export const GET = async (request: NextRequest, { params }: { params: Promise<{ 
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
-        const movieShowTime = await prisma.movieShowTime.findUnique({
+        const movieShowDate = await prisma.movieShowDate.findUnique({
             where: { id: id },
             select: {
                 id: true,
-                name: true,
-                movieShowTime: true,
-                maxSeat: true,
+                movieShowDate: true,
                 movie: {
                     select: {
                         id: true,
@@ -30,13 +28,13 @@ export const GET = async (request: NextRequest, { params }: { params: Promise<{ 
             }
         })
 
-        if (!movieShowTime) {
-            return NextResponse.json({ error: "Movie show time not found" }, { status: 404 })
+        if (!movieShowDate) {
+            return NextResponse.json({ error: "Movie show Date not found" }, { status: 404 })
         }
 
-        return NextResponse.json(movieShowTime)
+        return NextResponse.json(movieShowDate)
     } catch (error) {
-        return NextResponse.json({ error: "Failed to fetch movie show time" }, { status: 500 })
+        return NextResponse.json({ error: "Failed to fetch movie show Date" }, { status: 500 })
     }
 }
 
@@ -49,16 +47,16 @@ export const PUT = async (request: NextRequest, { params }: { params: Promise<{ 
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
-        const existingMovieShowTime = await prisma.movieShowTime.findUnique({
+        const existingMovieShowDate = await prisma.movieShowDate.findUnique({
             where: { id: id }
         });
 
-        if (!existingMovieShowTime) {
-            return NextResponse.json({ error: "Movie show time not found" }, { status: 404 })
+        if (!existingMovieShowDate) {
+            return NextResponse.json({ error: "Movie show Date not found" }, { status: 404 })
         }
 
         const body = await request.json();
-        const { name, movieShowTime, movieId, maxSeat } = body;
+        const { name, movieShowDate, movieId, maxSeat } = body;
 
         const updateData: any = {};
 
@@ -66,8 +64,8 @@ export const PUT = async (request: NextRequest, { params }: { params: Promise<{ 
             updateData.name = name.trim();
         }
 
-        if (movieShowTime) {
-            updateData.movieShowTime = new Date(movieShowTime);
+        if (movieShowDate) {
+            updateData.movieShowDate = new Date(movieShowDate);
         }
 
         if (movieId && movieId.trim() !== "") {
@@ -82,15 +80,15 @@ export const PUT = async (request: NextRequest, { params }: { params: Promise<{ 
             return NextResponse.json({ error: "No data provided for update" }, { status: 400 })
         }
 
-        const updatedMovieShowTime = await prisma.movieShowTime.update({
+        const updatedMovieShowDate = await prisma.movieShowDate.update({
             where: { id: id },
             data: updateData
         })
 
-        return NextResponse.json(updatedMovieShowTime)
+        return NextResponse.json(updatedMovieShowDate)
     } catch (error) {
-        console.error("Error updating movie show time:", error);
-        return NextResponse.json({ error: "Internal server error while updating movie show time" }, { status: 500 })
+        console.error("Error updating movie show Date:", error);
+        return NextResponse.json({ error: "Internal server error while updating movie show Date" }, { status: 500 })
     }
 }
 
@@ -103,12 +101,12 @@ export const DELETE = async (request: NextRequest, { params }: { params: Promise
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
-        await prisma.movieShowTime.delete({
+        await prisma.movieShowDate.delete({
             where: { id: id }
         })
 
-        return NextResponse.json({ message: "Movie show time deleted successfully" })
+        return NextResponse.json({ message: "Movie show Date deleted successfully" })
     } catch (error) {
-        return NextResponse.json({ error: "Internal server error while deleting movie show time" }, { status: 500 })
+        return NextResponse.json({ error: "Internal server error while deleting movie show Date" }, { status: 500 })
     }
 }

@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 export const POST = async (request: NextRequest) => {
     try {
         const body = await request.json();
-        const { name, movieShowTime, movieId, maxSeat } = body;
+        const { movieShowHour, movieShowDateId } = body;
 
         const session = await getServerSession(authOptions)
 
@@ -16,16 +16,39 @@ export const POST = async (request: NextRequest) => {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
-        const movieShowTimeRecord = await prisma.movieShowTime.create({
-            data: {
-                name: name,
-                movieShowTime: new Date(movieShowTime),
-                movieId: movieId,
-                maxSeat: maxSeat,
+        const date = await prisma.movieShowDate.findUnique({
+            where: {
+                id: movieShowDateId
+            },
+            select: {
+                movieShowDate: true
             }
         })
 
-        return NextResponse.json(movieShowTimeRecord)
+        if (!date) {
+            return NextResponse.json({ error: "Movie show date not found" }, { status: 404 })
+        }
+
+        const movieDate = new Date(date.movieShowDate)
+
+        const onlymovieShowHour = new Date(movieShowHour.getFullYear(), movieShowHour.getMonth(), movieShowHour.getDate());
+        const onlymovieDate = new Date(movieDate.getFullYear(), movieDate.getMonth(), movieDate.getDate());
+
+        if (onlymovieShowHour.getTime() !== onlymovieDate.getTime()) {
+            return NextResponse.json(
+                { error: "Tanggal harus sama" },
+                { status: 500 }
+            );
+        }
+
+        const movieShowHourRecord = await prisma.movieShowHour.create({
+            data: {
+                movieShowHour: new Date(movieShowHour),
+                movieShowDateId: movieShowDateId,
+            }
+        })
+
+        return NextResponse.json(movieShowHourRecord)
     } catch (error) {
         return NextResponse.json({ error: "Internal server error while creating movie show time" }, { status: 500 })
     }
@@ -39,22 +62,24 @@ export const GET = async () => {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
-        const movieShowTimes = await prisma.movieShowTime.findMany({
+        const movieShowHours = await prisma.movieShowHour.findMany({
             select: {
                 id: true,
-                name: true,
-                movieShowTime: true,
-                maxSeat: true,
-                movie: {
+                movieShowHour: true,
+                movieShowDate: {
                     select: {
-                        id: true,
-                        title: true,
+                        movieShowDate: true,
+                        movie: {
+                            select: {
+                                title: true
+                            }
+                        }
                     }
                 }
             }
         })
 
-        return NextResponse.json(movieShowTimes)
+        return NextResponse.json(movieShowHours)
     } catch (error) {
         return NextResponse.json({ error: "Failed to fetch movie show times" }, { status: 500 })
     }

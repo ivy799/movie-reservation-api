@@ -14,27 +14,28 @@ export const GET = async (request: NextRequest, { params }: { params: Promise<{ 
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
-        const movieShowTime = await prisma.movieShowTime.findUnique({
+        const movieShowHour = await prisma.movieShowHour.findUnique({
             where: { id: id },
             select: {
                 id: true,
-                name: true,
-                movieShowTime: true,
-                maxSeat: true,
-                movie: {
+                movieShowHour: true,
+                movieShowDate: {
                     select: {
-                        id: true,
-                        title: true,
+                        movie: {
+                            select: {
+                                title: true
+                            }
+                        }
                     }
                 }
             }
         })
 
-        if (!movieShowTime) {
+        if (!movieShowHour) {
             return NextResponse.json({ error: "Movie show time not found" }, { status: 404 })
         }
 
-        return NextResponse.json(movieShowTime)
+        return NextResponse.json(movieShowHour)
     } catch (error) {
         return NextResponse.json({ error: "Failed to fetch movie show time" }, { status: 500 })
     }
@@ -49,16 +50,16 @@ export const PUT = async (request: NextRequest, { params }: { params: Promise<{ 
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
-        const existingMovieShowTime = await prisma.movieShowTime.findUnique({
+        const existingmovieShowHour = await prisma.movieShowHour.findUnique({
             where: { id: id }
         });
 
-        if (!existingMovieShowTime) {
+        if (!existingmovieShowHour) {
             return NextResponse.json({ error: "Movie show time not found" }, { status: 404 })
         }
 
         const body = await request.json();
-        const { name, movieShowTime, movieId, maxSeat } = body;
+        const { name, movieShowHour, movieId, maxSeat } = body;
 
         const updateData: any = {};
 
@@ -66,8 +67,8 @@ export const PUT = async (request: NextRequest, { params }: { params: Promise<{ 
             updateData.name = name.trim();
         }
 
-        if (movieShowTime) {
-            updateData.movieShowTime = new Date(movieShowTime);
+        if (movieShowHour) {
+            updateData.movieShowHour = new Date(movieShowHour);
         }
 
         if (movieId && movieId.trim() !== "") {
@@ -82,12 +83,12 @@ export const PUT = async (request: NextRequest, { params }: { params: Promise<{ 
             return NextResponse.json({ error: "No data provided for update" }, { status: 400 })
         }
 
-        const updatedMovieShowTime = await prisma.movieShowTime.update({
+        const updatedmovieShowHour = await prisma.movieShowHour.update({
             where: { id: id },
             data: updateData
         })
 
-        return NextResponse.json(updatedMovieShowTime)
+        return NextResponse.json(updatedmovieShowHour)
     } catch (error) {
         console.error("Error updating movie show time:", error);
         return NextResponse.json({ error: "Internal server error while updating movie show time" }, { status: 500 })
@@ -103,7 +104,7 @@ export const DELETE = async (request: NextRequest, { params }: { params: Promise
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
-        await prisma.movieShowTime.delete({
+        await prisma.movieShowHour.delete({
             where: { id: id }
         })
 

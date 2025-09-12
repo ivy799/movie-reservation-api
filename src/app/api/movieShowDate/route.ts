@@ -16,12 +16,13 @@ export const POST = async (request: NextRequest) => {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
-        const movieShowTimeRecord = await prisma.movieShowTime.create({
+        const date = new Date(movieShowTime)
+        date.setHours(0,0,0,0)
+
+        const movieShowTimeRecord = await prisma.movieShowDate.create({
             data: {
-                name: name,
-                movieShowTime: new Date(movieShowTime),
+                movieShowDate: date,
                 movieId: movieId,
-                maxSeat: maxSeat,
             }
         })
 
@@ -39,12 +40,10 @@ export const GET = async () => {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
-        const movieShowTimes = await prisma.movieShowTime.findMany({
+        const movieShowTimes = await prisma.movieShowDate.findMany({
             select: {
                 id: true,
-                name: true,
-                movieShowTime: true,
-                maxSeat: true,
+                movieShowDate: true,
                 movie: {
                     select: {
                         id: true,
