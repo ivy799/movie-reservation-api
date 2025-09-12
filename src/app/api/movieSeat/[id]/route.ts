@@ -56,7 +56,24 @@ export const PUT = async (request: NextRequest, { params }: { params: Promise<{ 
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
-        // Check if movie seat exists
+        
+        const loggedUser = await prisma.user.findUnique({
+            where: {
+                id: session.user.id
+            },
+            select: {
+                role: {
+                    select: {
+                        role: true
+                    }
+                }
+            }
+        })
+
+        if (loggedUser?.role.role !== 'ADMIN') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
         const existingMovieSeat = await prisma.movieSeat.findUnique({
             where: { id: id }
         });
@@ -68,7 +85,6 @@ export const PUT = async (request: NextRequest, { params }: { params: Promise<{ 
         const body = await request.json();
         const { movieShowTimeId, status } = body;
 
-        // Build update data dynamically
         const updateData: any = {};
 
         if (movieShowTimeId && movieShowTimeId.trim() !== "") {
@@ -103,6 +119,24 @@ export const DELETE = async (request: NextRequest, { params }: { params: Promise
 
         if (!session) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        }
+
+        
+        const loggedUser = await prisma.user.findUnique({
+            where: {
+                id: session.user.id
+            },
+            select: {
+                role: {
+                    select: {
+                        role: true
+                    }
+                }
+            }
+        })
+
+        if (loggedUser?.role.role !== 'ADMIN') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
         await prisma.movieSeat.delete({

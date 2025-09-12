@@ -50,6 +50,23 @@ export const PUT = async (request: NextRequest, { params }: { params: Promise<{ 
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
+        const loggedUser = await prisma.user.findUnique({
+            where: {
+                id: session.user.id
+            },
+            select: {
+                role: {
+                    select: {
+                        role: true
+                    }
+                }
+            }
+        })
+
+        if (loggedUser?.role.role !== 'ADMIN') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
         const existingmovieShowHour = await prisma.movieShowHour.findUnique({
             where: { id: id }
         });
@@ -102,6 +119,23 @@ export const DELETE = async (request: NextRequest, { params }: { params: Promise
 
         if (!session) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        }
+
+        const loggedUser = await prisma.user.findUnique({
+            where: {
+                id: session.user.id
+            },
+            select: {
+                role: {
+                    select: {
+                        role: true
+                    }
+                }
+            }
+        })
+
+        if (loggedUser?.role.role !== 'ADMIN') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
         await prisma.movieShowHour.delete({

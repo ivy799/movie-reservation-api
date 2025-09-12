@@ -47,13 +47,22 @@ export const authOptions: NextAuthOptions = {
     async signOut({ session }) {
       if (session?.user?.id) {
         console.log("Menghapus session untuk user:", session.user.id)
-        
+
         await prisma.session.deleteMany({
           where: { userId: session.user.id },
         })
-        
+
         console.log("Session berhasil dihapus")
       }
     },
   },
+  callbacks: {
+    async session({ session, user }) {
+      if (session.user) {
+        session.user.id = user.id;
+      }
+
+      return session;
+    },
+  }
 }

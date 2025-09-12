@@ -15,6 +15,24 @@ export const POST = async (request: NextRequest) => {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        
+        const loggedUser = await prisma.user.findUnique({
+            where: {
+                id: session.user.id
+            },
+            select: {
+                role: {
+                    select: {
+                        role: true
+                    }
+                }
+            }
+        })
+
+        if (loggedUser?.role.role !== 'ADMIN') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
         const formData = await request.formData();
         const file = formData.get("file") as File | null;
         const title = formData.get("title") as string;
@@ -89,6 +107,6 @@ export const GET = async (request: NextRequest) => {
 
         return NextResponse.json(allMovies)
     } catch (error) {
-        return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+        return NextResponse.json({ error: "Failed Getting All Movies" }, { status: 500 });
     }
 }

@@ -16,6 +16,24 @@ export const POST = async (request: NextRequest) => {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
+        
+        const loggedUser = await prisma.user.findUnique({
+            where: {
+                id: session.user.id
+            },
+            select: {
+                role: {
+                    select: {
+                        role: true
+                    }
+                }
+            }
+        })
+
+        if (loggedUser?.role.role !== 'ADMIN') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
         const date = await prisma.movieShowDate.findUnique({
             where: {
                 id: movieShowDateId
@@ -60,6 +78,24 @@ export const GET = async () => {
 
         if (!session) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        }
+
+        
+        const loggedUser = await prisma.user.findUnique({
+            where: {
+                id: session.user.id
+            },
+            select: {
+                role: {
+                    select: {
+                        role: true
+                    }
+                }
+            }
+        })
+
+        if (loggedUser?.role.role !== 'ADMIN') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
         const movieShowHours = await prisma.movieShowHour.findMany({

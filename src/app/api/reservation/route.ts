@@ -29,7 +29,6 @@ export const POST = async (request: NextRequest) => {
             return NextResponse.json({ error: "Seat is not available" }, { status: 400 })
         }
 
-        // Gunakan transaction untuk atomicity
         const result = await prisma.$transaction(async (tx) => {
             const reservation = await tx.reservation.create({
                 data: {
@@ -63,6 +62,24 @@ export const GET = async () => {
 
         if (!session) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        }
+
+        
+        const loggedUser = await prisma.user.findUnique({
+            where: {
+                id: session.user.id
+            },
+            select: {
+                role: {
+                    select: {
+                        role: true
+                    }
+                }
+            }
+        })
+
+        if (loggedUser?.role.role !== 'ADMIN') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
         const reservations = await prisma.reservation.findMany({

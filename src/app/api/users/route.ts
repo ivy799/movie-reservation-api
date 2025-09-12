@@ -6,13 +6,30 @@ import { PrismaClient } from "@prisma/client"
 
 const prisma = new PrismaClient();
 
-// get all user
 export async function GET(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions)
 
         if (!session) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        }
+
+        
+        const loggedUser = await prisma.user.findUnique({
+            where: {
+                id: session.user.id
+            },
+            select: {
+                role: {
+                    select: {
+                        role: true
+                    }
+                }
+            }
+        })
+
+        if (loggedUser?.role.role !== 'ADMIN') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
         const users = await prisma.user.findMany({
