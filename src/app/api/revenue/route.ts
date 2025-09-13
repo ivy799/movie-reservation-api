@@ -54,12 +54,16 @@ export const GET = async (req: NextRequest) => {
             }
         })
 
+        const capacity = await prisma.movieSeat.count()
+        const totalReservation = await prisma.reservation.count()
+
+
         const revenue = reservations.reduce((acc, res) => {
             const price = res.movieSeat.movieShowHour.movieShowDate.movie.price || 0;
             return acc + price;
         }, 0)
 
-        return NextResponse.json({ revenue });
+        return NextResponse.json({ capacity,totalReservation,revenue });
     } catch (error) {
         return NextResponse.json({ error: "Failed to fetch revenue" }, { status: 500 })
     }

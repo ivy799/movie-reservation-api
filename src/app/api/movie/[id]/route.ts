@@ -22,7 +22,22 @@ export const GET = async (request: NextRequest, { params }: { params: Promise<{ 
                 title: true,
                 description: true,
                 image: true,
-                maxShowtime: true,
+                movieShowDate: {
+                    select: {
+                        movieShowDate: true,
+                        movieShowHour: {
+                            select: {
+                                movieShowHour: true,
+                                movieSeat: {
+                                    select: {
+                                        id: true,
+                                        status: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         })
 
