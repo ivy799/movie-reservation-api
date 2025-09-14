@@ -2,8 +2,13 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { PrismaClient } from "@prisma/client"
+import { createClient } from "redis"
 
 const prisma = new PrismaClient();
+const redisClient = createClient()
+redisClient.on('error', err => console.log('Redis Client Error', err));
+
+await redisClient.connect();
 
 export const POST = async (request: NextRequest) => {
     try {
@@ -37,29 +42,37 @@ export const GET = async () => {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
-        const movieSeats = await prisma.movieSeat.findMany({
-            select: {
-                id: true,
-                status: true,
-                movieShowHour: {
-                    select: {
-                        id: true,
-                        movieShowDate: {
-                            select: {
-                                movieShowDate: true,
-                                movie: {
-                                    select: {
-                                        title: true,
+        const cachedMovieSeatList = await redisClient.get('seat')
+        
+        if (cachedMovieSeatList != null) {
+            return NextResponse.json(JSON.parse(cachedMovieSeatList))
+        } else {
+            const movieSeats = await prisma.movieSeat.findMany({
+                select: {
+                    id: true,
+                    status: true,
+                    movieShowHour: {
+                        select: {
+                            id: true,
+                            movieShowDate: {
+                                select: {
+                                    movieShowDate: true,
+                                    movie: {
+                                        select: {
+                                            title: true,
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
-            }
-        })
+            })
 
-        return NextResponse.json(movieSeats)
+            await redisClient.set('seat', JSON.stringify(movieSeats))
+
+            return NextResponse.json(movieSeats)
+        }
     } catch (error) {
         return NextResponse.json({ error: "Failed to fetch movie seats" }, { status: 500 })
     }
